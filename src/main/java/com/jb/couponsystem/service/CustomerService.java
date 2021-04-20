@@ -18,4 +18,6 @@ public interface CustomerService {
     Optional<Customer> findCustomer(long id);
 
     List<Coupon> findAllCouponsLeesThan(double price);
+
+    Customer updateCustomer(Customer customer);
 }

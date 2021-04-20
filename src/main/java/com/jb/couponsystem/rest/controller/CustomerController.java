@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api")
 public class CustomerController {
@@ -119,6 +120,41 @@ public class CustomerController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/customers/update")
+    public ResponseEntity<Customer> updateCustomer(@RequestParam String token, @RequestBody Customer customer) {
+        ClientSession clientSession = tokensMap.get(token);
+
+        if (clientSession == null || !"customer".equals(clientSession.getType())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        clientSession.access();
+
+        Optional<Customer> optCustomer = service.findCustomer(customer.getId());
+
+        if (optCustomer.isPresent()) {
+            customer.setCoupons(optCustomer.get().getCoupons());
+            return ResponseEntity.ok(service.updateCustomer(customer));
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/customers/get-me")
+    public ResponseEntity<Customer> getCustomer(@RequestParam String token) {
+        ClientSession clientSession = tokensMap.get(token);
+
+        if (clientSession == null || !"customer".equals(clientSession.getType())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        clientSession.access();
+
+        Optional<Customer> optCustomer = service.findCustomer(clientSession.getClientId());
+
+        return optCustomer.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 }
 

@@ -46,4 +46,9 @@ public class CompanyServiceProvider implements CompanyService {
     public Optional<Company> findCompanyById(long id) {
         return companyRepo.findById(id);
     }
+
+    @Override
+    public Company updateCompany(Company company) {
+        return companyRepo.save(company);
+    }
 }

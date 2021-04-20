@@ -52,4 +52,9 @@ public class CustomerServiceProvider implements CustomerService {
     public List<Coupon> findAllCouponsLeesThan(double price) {
         return couponRepo.findAllCouponsLeesThan(price);
     }
+
+    @Override
+    public Customer updateCustomer(Customer customer) {
+        return customerRepo.save(customer);
+    }
 }

@@ -17,4 +17,6 @@ public interface CompanyService {
     Optional<Coupon> findCoupon(long id);
 
     Optional<Company> findCompanyById(long id);
+
+    Company updateCompany(Company company);
 }

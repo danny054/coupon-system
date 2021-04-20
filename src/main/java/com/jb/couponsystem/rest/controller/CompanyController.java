@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api")
 public class CompanyController {
@@ -26,6 +27,10 @@ public class CompanyController {
     public CompanyController(CompanyService service, @Qualifier("tokens") Map<String, ClientSession> tokensMap) {
         this.service = service;
         this.tokensMap = tokensMap;
+    }
+
+    private static int compareBySales(Coupon a, Coupon b) {
+        return (b.getCustomers().size() - a.getCustomers().size());
     }
 
     @PostMapping("/coupons/add-coupon")
@@ -120,9 +125,40 @@ public class CompanyController {
         List<Coupon> coupons = service.findAllCouponsByCompanyId(clientSession.getClientId());
 
         if (coupons != null && !coupons.isEmpty()) {
+            coupons.sort((CompanyController::compareBySales));
             return ResponseEntity.ok(coupons);
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("companies/update")
+    public ResponseEntity<Company> updateCompany(@RequestBody Company company, @RequestParam String token) {
+        ClientSession clientSession = tokensMap.get(token);
+
+        if (clientSession == null || !"company".equals(clientSession.getType())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        clientSession.access();
+
+        Optional<Company> optCompany = service.findCompanyById(clientSession.getClientId());
+
+        return optCompany.map(value -> ResponseEntity.ok(service.updateCompany(company))).orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("companies/get-me")
+    public ResponseEntity<Company> getCompany(@RequestParam String token) {
+        ClientSession clientSession = tokensMap.get(token);
+
+        if (clientSession == null || !"company".equals(clientSession.getType())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        clientSession.access();
+
+        Optional<Company> optCompany = service.findCompanyById(clientSession.getClientId());
+
+        return optCompany.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 }
